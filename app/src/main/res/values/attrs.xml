@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AbsChartView">
+        <attr name="x_size" format="dimension"/>
+        <attr name="y_size" format="dimension"/>
+        <attr name="x_color" format="color"/>
+        <attr name="y_color" format="color"/>
+        <attr name="x_space" format="dimension"/>
+        <attr name="y_space" format="dimension"/>
+        <attr name="y_horizontal_line_num" format="integer"/>
+        <attr name="y_horizontal_line_color" format="color"/>
+        <attr name="axis_border" format="color"/>
+        <attr name="axis_width" format="dimension"/>
+        <attr name="axis_space" format="dimension"/>
+        <attr name="line_color" format="color"/>
+        <attr name="tips_color" format="color"/>
+        <attr name="tips_size" format="dimension"/>
+        <attr name="tips_padding" format="dimension"/>
+        <attr name="tips_background" format="color"/>
+        <attr name="tips_radio" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="HistogramView">
+        <attr name="histogram_color" format="color"/>
+        <attr name="histogram_width_percent" format="float"/>
+    </declare-styleable>
+</resources>
