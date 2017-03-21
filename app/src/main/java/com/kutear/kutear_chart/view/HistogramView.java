@@ -4,8 +4,11 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -21,7 +24,10 @@ import com.kutear.kutear_chart.R;
 
 public class HistogramView extends AbsChartView {
     private static final String TAG = "GxqHistogramView";
-    private int mHistogramColor = DEFAULT_HISTOGRAM_COLOR;
+    private int mPStartHistogramColor = DEFAULT_HISTOGRAM_COLOR;
+    private int mPEndHistogramColor = DEFAULT_HISTOGRAM_COLOR;
+    private int mNStartHistogramColor = DEFAULT_HISTOGRAM_COLOR;
+    private int mNEndHistogramColor = DEFAULT_HISTOGRAM_COLOR;
     private float mHistogramPercent = .5f;
     private PaintController mPaintController;
 
@@ -54,8 +60,17 @@ public class HistogramView extends AbsChartView {
                 case R.styleable.HistogramView_histogram_width_percent:
                     mHistogramPercent = ta.getFloat(attr, 0.5f);
                     break;
-                case R.styleable.HistogramView_histogram_color:
-                    mHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                case R.styleable.HistogramView_histogram_positive_bottom_color:
+                    mPEndHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_positive_top_color:
+                    mPStartHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_negative_bottom_color:
+                    mNEndHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_negative_top_color:
+                    mNStartHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
                     break;
             }
         }
@@ -65,16 +80,7 @@ public class HistogramView extends AbsChartView {
 
     @Override
     protected void onDrawGraph(Canvas canvas) {
-
-        float canDrawHeight = axisHeight();
-        if (getCount() == 0) {
-            return;
-        }
-        float range = getMaxValue() - getMinValue();
-        if (Float.compare(range, 0f) == 0) {
-            return;
-        }
-        float singleWidth = getSingleWidth();
+        float singleWidth = getCellWidth();
         float baseLine = getZeroLine();
         canvas.save();
         canvas.translate(mOriginalX, mHeight - mOriginalY - baseLine);
@@ -84,18 +90,36 @@ public class HistogramView extends AbsChartView {
             if (data == null) {
                 continue;
             }
-            float drawHeight = Math.abs(canDrawHeight * (data.yData) / range);
+            float drawHeight = -(getHeightOfIndex(i) - baseLine);
             float top = 0;
             float bottom = 0;
             if (data.yData > 0) {
-                top = -drawHeight;
+                top = drawHeight;
                 bottom = 0;
+                mPaintController.mPHistogramPaint.setShader(new LinearGradient(
+                        singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                        mPStartHistogramColor,mPEndHistogramColor, Shader.TileMode.CLAMP
+                ));
+                canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                        mPaintController.mPHistogramPaint);
             } else {
                 top = 0;
                 bottom = drawHeight;
+                mPaintController.mNHistogramPaint.setShader(new LinearGradient(
+                        singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                        mNStartHistogramColor,mNEndHistogramColor, Shader.TileMode.CLAMP
+                ));
+                canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                        mPaintController.mNHistogramPaint);
             }
-            canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
-                    mPaintController.mHistogramPaint);
+
+
+
+
+
+            if (getCurrentSelectIndex() == i) {
+                //绘制指示部分
+            }
         }
         canvas.restore();
     }
@@ -105,12 +129,17 @@ public class HistogramView extends AbsChartView {
      */
     private class PaintController {
         /**
-         * 柱状图画笔
+         * 柱状图画笔(+)
          */
-        private Paint mHistogramPaint;
+        private Paint mPHistogramPaint;
+        /**
+         * 柱状图画笔(-)
+         */
+        private Paint mNHistogramPaint;
 
         PaintController() {
-            mHistogramPaint = buildPaint(mHistogramColor);
+            mPHistogramPaint = buildPaint(mPStartHistogramColor);
+            mNHistogramPaint = buildPaint(mNStartHistogramColor);
         }
 
         private Paint buildPaint(int color) {

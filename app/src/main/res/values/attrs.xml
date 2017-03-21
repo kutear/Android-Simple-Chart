@@ -1,36 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="AbsChartView">
-        <attr name="x_size" format="dimension"/>
-        <attr name="y_size" format="dimension"/>
-        <attr name="x_color" format="color"/>
-        <attr name="y_color" format="color"/>
-        <attr name="x_space" format="dimension"/>
-        <attr name="y_space" format="dimension"/>
-        <attr name="y_horizontal_line_num" format="integer"/>
-        <attr name="y_horizontal_line_color" format="color"/>
-        <attr name="axis_color" format="color"/>
-        <attr name="axis_width" format="dimension"/>
-        <attr name="axis_space" format="dimension"/>
-        <attr name="line_color" format="color"/>
-        <attr name="tips_color" format="color"/>
-        <attr name="tips_size" format="dimension"/>
-        <attr name="tips_padding" format="dimension"/>
-        <attr name="tips_background" format="color"/>
-        <attr name="tips_radio" format="dimension"/>
-        <attr name="zero_line_size" format="dimension"/>
-        <attr name="zero_line_color" format="color"/>
+        <attr name="x_size" format="dimension" />
+        <attr name="y_size" format="dimension" />
+        <attr name="x_color" format="color" />
+        <attr name="y_color" format="color" />
+        <attr name="x_space" format="dimension" />
+        <attr name="y_space" format="dimension" />
+        <attr name="y_horizontal_line_num" format="integer" />
+        <attr name="y_horizontal_line_color" format="color" />
+        <attr name="axis_color" format="color" />
+        <attr name="axis_width" format="dimension" />
+        <attr name="axis_space" format="dimension" />
+        <attr name="line_color" format="color" />
+        <attr name="tips_color" format="color" />
+        <attr name="tips_size" format="dimension" />
+        <attr name="tips_padding" format="dimension" />
+        <attr name="tips_background" format="color" />
+        <attr name="tips_radio" format="dimension" />
+        <attr name="zero_line_size" format="dimension" />
+        <attr name="zero_line_color" format="color" />
+        <attr name="tap_bg" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="HistogramView">
-        <attr name="histogram_color" format="color"/>
-        <attr name="histogram_width_percent" format="float"/>
+        <attr name="histogram_positive_top_color" format="color" />
+        <attr name="histogram_positive_bottom_color" format="color" />
+        <attr name="histogram_negative_top_color" format="color" />
+        <attr name="histogram_negative_bottom_color" format="color" />
+        <attr name="histogram_width_percent" format="float" />
     </declare-styleable>
     <declare-styleable name="TrendView">
-        <attr name="trend_line_start_color" format="color"/>
-        <attr name="trend_line_end_color" format="color"/>
-        <attr name="trend_line_size" format="dimension"/>
-        <attr name="trend_fill_start_color" format="dimension"/>
-        <attr name="trend_fill_end_color" format="dimension"/>
+        <attr name="trend_line_start_color" format="color" />
+        <attr name="trend_line_end_color" format="color" />
+        <attr name="trend_line_size" format="dimension" />
+        <attr name="trend_fill_start_color" format="dimension" />
+        <attr name="trend_fill_end_color" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="TestView">
+        <attr name="test" format="reference" />
     </declare-styleable>
 </resources>

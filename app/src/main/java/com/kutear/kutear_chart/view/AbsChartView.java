@@ -3,12 +3,16 @@ package com.kutear.kutear_chart.view;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -73,6 +77,8 @@ public abstract class AbsChartView extends View {
     private float mLastTapPointX;
     private float mLastTapPointY;
     private float mOffset = .5f; //触摸线偏移一个单元格的比例
+    private Drawable mTapDrawable;
+    private Context mCtx;
 
 
     public AbsChartView(Context context) {
@@ -95,6 +101,7 @@ public abstract class AbsChartView extends View {
     }
 
     private void init(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        this.mCtx = context;
         initDefaultValue(context);
         TypedArray ta = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AbsChartView, defStyleAttr, 0);
         int n = ta.getIndexCount();
@@ -161,6 +168,9 @@ public abstract class AbsChartView extends View {
                 case R.styleable.AbsChartView_zero_line_size:
                     mZeroLineWidth = ta.getDimension(attr, 0.7f);
                     break;
+                case R.styleable.AbsChartView_tap_bg:
+                    mTapDrawable = ta.getDrawable(attr);
+                    break;
             }
         }
         ta.recycle();
@@ -202,6 +212,13 @@ public abstract class AbsChartView extends View {
      */
     public void setOnTapListener(IChartContract.OnTapListener listener) {
         this.mListener = listener;
+    }
+
+    protected Drawable getTapBitmap() {
+        if (mTapDrawable != null) {
+            return mTapDrawable;
+        }
+        return null;
     }
 
     /**
@@ -358,8 +375,10 @@ public abstract class AbsChartView extends View {
                     mPaintController.mHorizontalLinePaint);
             onDrawYText(canvas, i, -mOriginalX, -i * singleHeight + textHeight / 2);
         }
-        float zeroLine = -getZeroLine();
-        canvas.drawLine(0, zeroLine, axisWidth(), zeroLine, mPaintController.mZeroLinePaint);
+        if (mMaxValue > 0 && mMinValue < 0) {
+            float zeroLine = -getZeroLine();
+            canvas.drawLine(0, zeroLine, axisWidth(), zeroLine, mPaintController.mZeroLinePaint);
+        }
     }
 
     /**
@@ -458,11 +477,40 @@ public abstract class AbsChartView extends View {
         }
     }
 
+    /**
+     * 计算index对应单元的中心位置
+     *
+     * @param index
+     * @return
+     */
+    protected float whereIs(int index) {
+        float cellW = getCellWidth();
+        return cellW * (index + mOffset);
+    }
+
+    protected float getHeightPercent(int index) {
+        float min = getMinValue();
+        float max = getMaxValue();
+        float range = Math.abs(max - min);
+        if (Float.compare(range, 0) == 0) {
+            return 1;
+        }
+        if (index >= 0 && index < mDataLists.size()) {
+            float currentValue = mDataLists.get(index).yData;
+            return Math.abs(currentValue - min) / range;
+        }
+        return 0;
+    }
+
+    protected float getHeightOfIndex(int index) {
+        return getHeightPercent(index) * axisHeight();
+    }
+
     private void onDrawLineTips(Canvas canvas, int index) {
         if (index >= 0 && index < getCount()) {
             canvas.save();
             canvas.translate(mOriginalX, mHeight - mOriginalY);
-            float center = ((index + mOffset) * getSingleWidth());
+            float center = ((index + mOffset) * getCellWidth());
             canvas.drawLine(center, 0, center, -axisHeight(), mPaintController.mLinePaint);
             IChartContract.ChartSingleData node = mDataLists.get(index);
             String xValue = getTips(index, node.xData, node.yData);
@@ -487,7 +535,7 @@ public abstract class AbsChartView extends View {
                     mTipsRadio,
                     mTipsRadio,
                     mPaintController.mTipsBackgroundPaint);
-            //山角形指示器
+            //三角形指示器
             Path path = new Path();
             path.moveTo(center, -axisHeight());
             float pLeft = (float) (center - .5 * mRect.height());
@@ -496,7 +544,7 @@ public abstract class AbsChartView extends View {
             }
             float pRight = (float) (center + .5 * mRect.height());
             if (pRight > axisWidth()) {
-                pRight = axisHeight();
+                pRight = axisWidth();
             }
             path.lineTo(pLeft, bottom - 5);
             path.lineTo(pRight, bottom - 5);
@@ -510,9 +558,18 @@ public abstract class AbsChartView extends View {
         }
     }
 
-    protected float getSingleWidth() {
-        if (getCount() != 0)
+    /**
+     * 一个单元格的宽度
+     *
+     * @return
+     */
+    protected float getCellWidth() {
+        if (getCount() != 0) {
+            if (Float.compare(mOffset, 0) == 0 && getCount() != 1) {
+                return axisWidth() / (getCount() - 1);
+            }
             return axisWidth() / getCount();
+        }
         return axisWidth();
     }
 
@@ -529,7 +586,7 @@ public abstract class AbsChartView extends View {
                 dispatchChange(mIndex);
                 break;
             case MotionEvent.ACTION_MOVE:
-                mIndex = getIndexOfPressed(event.getX());
+                int index = getIndexOfPressed(event.getX());
                 float x = event.getX();
                 float y = event.getY();
                 if (Math.abs(x - mLastTapPointX) < Math.abs(y - mLastTapPointY)) {
@@ -543,8 +600,11 @@ public abstract class AbsChartView extends View {
                 }
                 mLastTapPointY = y;
                 mLastTapPointX = x;
-                invalidate();
-                dispatchChange(mIndex);
+                if (index != mIndex) {
+                    mIndex = index;
+                    invalidate();
+                    dispatchChange(mIndex);
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 invalidate();
@@ -567,6 +627,10 @@ public abstract class AbsChartView extends View {
         refresh();
     }
 
+    protected int getCurrentSelectIndex() {
+        return mIndex;
+    }
+
     private void dispatchChange(int index) {
         if (index >= 0 && index < getCount()) {
             if (mListener != null) {
@@ -585,9 +649,8 @@ public abstract class AbsChartView extends View {
         if (x < mOriginalX || x > mOriginalX + axisWidth()) {
             return mIndex;
         }
-        float offset = Math.abs(x - mOriginalX);
-        return (int) Math.floor(offset / getSingleWidth());
-
+        float offset = (float) Math.abs(x - mOriginalX + (0.5 - mOffset) * getCellWidth());
+        return (int) Math.floor(offset / getCellWidth());
     }
 
     private class PaintController {

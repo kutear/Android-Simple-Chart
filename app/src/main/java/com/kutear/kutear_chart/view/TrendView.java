@@ -5,11 +5,14 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Shader;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.kutear.kutear_chart.R;
 
@@ -20,12 +23,15 @@ import com.kutear.kutear_chart.R;
  */
 
 public class TrendView extends AbsChartView {
+    private static final int DEFAULT_FILL_COLOR = Color.TRANSPARENT;
     private Paint mLinePaint;
     private Paint mFillPaint;
     private Path mLinePath;
     private Path mFillPath;
     private int mStartColor;
     private int mEndColor;
+    private int mFillStartColor = DEFAULT_FILL_COLOR;
+    private int mFillEndColor = DEFAULT_FILL_COLOR;
     private static final float DEFAULT_LINE_WIDTH = 0.3f;
 
     public TrendView(Context context) {
@@ -64,45 +70,42 @@ public class TrendView extends AbsChartView {
                 case R.styleable.TrendView_trend_line_size:
                     defaultLineSize = ta.getDimension(attr, defaultLineSize);
                     break;
+                case R.styleable.TrendView_trend_fill_start_color:
+                    mFillStartColor = ta.getColor(attr, DEFAULT_FILL_COLOR);
+                    break;
+                case R.styleable.TrendView_trend_fill_end_color:
+                    mFillEndColor = ta.getColor(attr, DEFAULT_FILL_COLOR);
+                    break;
             }
         }
         ta.recycle();
         mLinePaint = buildPaint(mStartColor);
         mLinePaint.setStrokeWidth(defaultLineSize);
         mLinePaint.setStyle(Paint.Style.STROKE);
-        mFillPaint = buildPaint(mStartColor);
+        mFillPaint = buildPaint(mFillStartColor);
         mLinePath = new Path();
         mFillPath = new Path();
         setOffset(0);
     }
 
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-    }
 
     @Override
     protected void onDrawGraph(Canvas canvas) {
         mLinePaint.setShader(new LinearGradient(0, 0, axisWidth(), 0, mStartColor, mEndColor, Shader.TileMode.MIRROR));
-        mFillPaint.setShader(new LinearGradient(0, 0, axisWidth(),  -axisHeight(), Color.parseColor("#22FBDA61"),Color.BLACK, Shader.TileMode.MIRROR));
+        LinearGradient fillColor = new LinearGradient(0, 0, 0, -axisHeight(), mFillStartColor, mFillEndColor, Shader.TileMode.CLAMP);
+        mFillPaint.setShader(fillColor);
         canvas.save();
         canvas.translate(mOriginalX, mHeight - mOriginalY);
         int count = getCount();
         if (count <= 0) {
             return;
         }
-        float singleWidth = getSingleWidth();
-        float canDrawHeight = axisHeight();
-        float range = getMaxValue() - getMinValue();
-        float min = getMinValue();
+        float singleWidth = getCellWidth();
+        mFillPath.reset();
+        mLinePath.reset();
         mFillPath.moveTo(0, 0);
         for (int i = 0; i < count; i++) {
-            IChartContract.ChartSingleData data = getItemData(i);
-            if (data == null) {
-                continue;
-            }
-            float drawHeight = Math.abs(canDrawHeight * (data.yData - min) / range);
+            float drawHeight = getHeightOfIndex(i);
             float center = singleWidth * i;
             if (i == 0) {
                 mLinePath.moveTo(center, -drawHeight);
@@ -116,7 +119,9 @@ public class TrendView extends AbsChartView {
             }
         }
         canvas.drawPath(mLinePath, mLinePaint);
-//        canvas.drawPath(mFillPath, mFillPaint);
+        if (mFillEndColor != Color.TRANSPARENT || mFillStartColor != Color.TRANSPARENT) {
+            canvas.drawPath(mFillPath, mFillPaint);
+        }
         canvas.restore();
     }
 

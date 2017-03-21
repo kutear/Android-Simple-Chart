@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -24,10 +23,15 @@
                 android:background="@android:color/white"
                 android:padding="16dp"
                 app:axis_space="3dp"
+                app:histogram_negative_bottom_color="@color/colorAccent"
+                app:histogram_negative_top_color="@color/colorPrimary"
+                app:histogram_positive_bottom_color="@color/colorPrimary"
+                app:histogram_positive_top_color="@color/colorAccent"
+                app:tap_bg="@mipmap/ic_launcher"
                 app:tips_size="11.6sp"
                 app:y_size="10sp"
                 tools:layout_editor_absoluteX="8dp"
-                tools:layout_editor_absoluteY="16dp"/>
+                tools:layout_editor_absoluteY="16dp" />
 
 
             <com.kutear.kutear_chart.view.TrendView
@@ -39,19 +43,26 @@
                 android:padding="16dp"
                 app:axis_space="3dp"
                 app:tips_size="11.6sp"
+                app:trend_fill_end_color="@color/colorPrimaryDark"
+                app:trend_fill_start_color="@color/color_test"
+                app:trend_line_end_color="@color/colorPrimaryDark"
                 app:trend_line_size="2dp"
                 app:trend_line_start_color="@color/colorAccent"
-                app:trend_line_end_color="@color/colorPrimaryDark"
                 app:y_horizontal_line_num="6"
-                app:y_size="10sp"/>
+                app:y_size="10sp" />
 
             <Button
+                android:id="@+id/btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:onClick="reload"
-                android:text="ReCreate"
-                />
+                android:text="ReCreate" />
+
+            <com.kutear.kutear_chart.TestView
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                app:test="@mipmap/ic_launcher" />
 
         </LinearLayout>
     </ScrollView>
