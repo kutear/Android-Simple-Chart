@@ -39,6 +39,10 @@
                 android:padding="16dp"
                 app:axis_space="3dp"
                 app:tips_size="11.6sp"
+                app:trend_line_size="2dp"
+                app:trend_line_start_color="@color/colorAccent"
+                app:trend_line_end_color="@color/colorPrimaryDark"
+                app:y_horizontal_line_num="6"
                 app:y_size="10sp"/>
 
             <Button

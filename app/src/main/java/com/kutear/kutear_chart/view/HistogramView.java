@@ -21,21 +21,9 @@ import com.kutear.kutear_chart.R;
 
 public class HistogramView extends AbsChartView {
     private static final String TAG = "GxqHistogramView";
-
-
     private int mHistogramColor = DEFAULT_HISTOGRAM_COLOR;
     private float mHistogramPercent = .5f;
-
-
     private PaintController mPaintController;
-    private Rect mRect;
-
-
-    private boolean mDrawLine;
-    private float mTapX;
-    private float mTapY;
-    private float mHistogramWidth;
-
 
     public HistogramView(Context context) {
         this(context, null);
@@ -73,7 +61,6 @@ public class HistogramView extends AbsChartView {
         }
         ta.recycle();
         mPaintController = new PaintController();
-        mRect = new Rect();
     }
 
     @Override
@@ -83,15 +70,14 @@ public class HistogramView extends AbsChartView {
         if (getCount() == 0) {
             return;
         }
-        float singleWidth = getSingleWidth();
-        float baseLine = getSingleHeight() * baseLine();
-
-        canvas.save();
-        canvas.translate(mOriginalX, mHeight - mOriginalY - baseLine);
         float range = getMaxValue() - getMinValue();
         if (Float.compare(range, 0f) == 0) {
             return;
         }
+        float singleWidth = getSingleWidth();
+        float baseLine = getZeroLine();
+        canvas.save();
+        canvas.translate(mOriginalX, mHeight - mOriginalY - baseLine);
         float space = singleWidth * (1 - mHistogramPercent) / 2;
         for (int i = 0; i < getCount(); i++) {
             IChartContract.ChartSingleData data = getItemData(i);
@@ -113,17 +99,6 @@ public class HistogramView extends AbsChartView {
         }
         canvas.restore();
     }
-
-    @Override
-    protected String getYHorizontalText(int index) {
-        return "000";
-    }
-
-    @Override
-    protected int baseLine() {
-        return 2;
-    }
-
 
     /**
      * 画笔工具类

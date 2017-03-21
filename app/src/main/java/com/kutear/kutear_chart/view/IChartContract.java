@@ -11,14 +11,14 @@ public interface IChartContract {
     /**
      * X轴数据展示
      */
-    public interface IFormatAxis {
+    interface IFormatAxis {
         /**
          * 格式化X的展示
          *
          * @param xAxis
          * @return
          */
-        String formatX(String xAxis);
+        String formatX(String xAxis,int index);
 
         /**
          * 格式化X的展示
@@ -27,26 +27,33 @@ public interface IChartContract {
          * @return
          */
         String formatY(float yAxis);
+
+        /**
+         * Y轴文字最长时的长度
+         *
+         * @return
+         */
+        String getYMaxText();
     }
 
     /**
      * Y轴范围
      */
-    public interface IMaxMin {
+    interface IMaxMin {
         float getMax(float max, float min);
 
         float getMin(float max, float min);
     }
 
 
-    public interface ITipShow {
+    interface ITipShow {
         String getTips(int position, String x, float y);
     }
 
     /**
      * 点击事件
      */
-    public interface OnTapListener {
+    interface OnTapListener {
         /**
          * 点击
          *

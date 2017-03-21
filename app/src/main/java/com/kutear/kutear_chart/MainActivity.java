@@ -16,15 +16,16 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    ArrayList<IChartContract.ChartSingleData> datas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ArrayList<IChartContract.ChartSingleData> datas = new ArrayList<>();
+        datas = new ArrayList<>();
         Random random = new Random();
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 30; i++) {
             int randomInt = random.nextInt(100);
             datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt));
         }
@@ -35,18 +36,28 @@ public class MainActivity extends AppCompatActivity {
         trendView.setData(datas);
         init(view);
         init(trendView);
+        view.setDefaultSelected(datas.size() - 1);
+        trendView.setDefaultSelected(datas.size() - 1);
     }
 
     private void init(AbsChartView view) {
         view.setFormatAxis(new IChartContract.IFormatAxis() {
             @Override
-            public String formatX(String xAxis) {
-                return xAxis;
+            public String formatX(String xAxis, int i) {
+                if (i == 0 || i == datas.size() - 1) {
+                    return "X-" + xAxis;
+                }
+                return "";
             }
 
             @Override
             public String formatY(float yAxis) {
                 return String.valueOf(yAxis);
+            }
+
+            @Override
+            public String getYMaxText() {
+                return "99.99";
             }
         });
 
@@ -65,19 +76,19 @@ public class MainActivity extends AppCompatActivity {
         view.setMaxMin(new IChartContract.IMaxMin() {
             @Override
             public float getMax(float max, float min) {
-                return max;
+                return 100;
             }
 
             @Override
             public float getMin(float max, float min) {
-                return min;
+                return -50;
             }
         });
 
         view.setTipsShow(new IChartContract.ITipShow() {
             @Override
             public String getTips(int position, String x, float y) {
-                return "2016." + x;
+                return "Y:" + y;
             }
         });
     }

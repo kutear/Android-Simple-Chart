@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -63,14 +64,15 @@ public abstract class AbsChartView extends View {
     private float mTipsSize;
     private float mSplitNum = DEFAULT_SPLIT_NUM;
     private int mHorizontalLineColor = Color.GRAY;
-    private float mSingleHeight = 0;
     private float mTipsHeight = 0;
-    private boolean mShowTips = false;
     private int mIndex = -1;
     private float mTipsPadding;
     private float mTipsRadio = 0;
+    private float mZeroLineWidth;
+    private int mZeroLineColor = DEFAULT_TEXT_COLOR;
     private float mLastTapPointX;
     private float mLastTapPointY;
+    private float mOffset = .5f; //触摸线偏移一个单元格的比例
 
 
     public AbsChartView(Context context) {
@@ -146,6 +148,18 @@ public abstract class AbsChartView extends View {
                     break;
                 case R.styleable.AbsChartView_tips_radio:
                     mTipsRadio = ta.getDimension(attr, 0);
+                    break;
+                case R.styleable.AbsChartView_axis_color:
+                    mAxisBorder = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.AbsChartView_axis_width:
+                    mAxisWidth = ta.getDimension(attr, 0.7f);
+                    break;
+                case R.styleable.AbsChartView_zero_line_color:
+                    mZeroLineColor = ta.getColor(attr, DEFAULT_TEXT_COLOR);
+                    break;
+                case R.styleable.AbsChartView_zero_line_size:
+                    mZeroLineWidth = ta.getDimension(attr, 0.7f);
                     break;
             }
         }
@@ -236,11 +250,11 @@ public abstract class AbsChartView extends View {
         return mFormatAxis.formatY(y);
     }
 
-    protected String getXbyValue(String str) {
+    protected String getXbyValue(String str, int i) {
         if (mFormatAxis == null) {
             return str;
         }
-        return mFormatAxis.formatX(str);
+        return mFormatAxis.formatX(str, i);
     }
 
     /**
@@ -270,7 +284,7 @@ public abstract class AbsChartView extends View {
     public void setData(List<IChartContract.ChartSingleData> data) {
         this.mDataLists = data;
         initData();
-        invalidate();
+        refresh();
     }
 
     @Override
@@ -297,13 +311,9 @@ public abstract class AbsChartView extends View {
     private void onDrawAxis(Canvas canvas) {
         canvas.save();
         String max = getYbyValue(getMaxValue());
-        String min = getYbyValue(getMinValue());
-        mPaintController.mAxisYTextPaint.getTextBounds(String.valueOf(max) + "", 0, String.valueOf(max).length(), mRect);
-        float maxW = mRect.width();
-        mPaintController.mAxisYTextPaint.getTextBounds(String.valueOf(min), 0, String.valueOf(min).length(), mRect);
-        float minW = mRect.width();
-        float textHeight = mRect.height();
-        float yTextWidth = maxW > minW ? maxW : minW;
+        mPaintController.mAxisYTextPaint.getTextBounds(getYMaxText(), 0, String.valueOf(max).length(), mRect);
+        float yTextHeight = mRect.height();
+        float yTextWidth = mRect.width();
         mOriginalX = yTextWidth + mYSpace + mSpace;
         mPaintController.mAxisXTextPaint.getTextBounds(String.valueOf("0"), 0, String.valueOf("0").length(), mRect);
         float axisXTextHeight = mRect.height();
@@ -316,9 +326,20 @@ public abstract class AbsChartView extends View {
         canvas.drawLine(0, -axisHeight(), 0, 0, mPaintController.mAxisPaint);
         //绘制X轴
         canvas.drawLine(0, 0, axisWidth(), 0, mPaintController.mAxisPaint);
-        mSingleHeight = Math.abs(axisHeight() / (mSplitNum + 1));
-        onDrawHorizontalLine(canvas, mSingleHeight, textHeight);
+        float singleLineHeight = Math.abs(axisHeight() / (mSplitNum + 1));
+        onDrawHorizontalLine(canvas, singleLineHeight, yTextHeight);
         canvas.restore();
+    }
+
+    private String getYMaxText() {
+        if (mFormatAxis != null) {
+            return mFormatAxis.getYMaxText();
+        }
+        return "00.00";
+    }
+
+    protected void setOffset(float offset) {
+        this.mOffset = offset;
     }
 
 
@@ -337,6 +358,8 @@ public abstract class AbsChartView extends View {
                     mPaintController.mHorizontalLinePaint);
             onDrawYText(canvas, i, -mOriginalX, -i * singleHeight + textHeight / 2);
         }
+        float zeroLine = -getZeroLine();
+        canvas.drawLine(0, zeroLine, axisWidth(), zeroLine, mPaintController.mZeroLinePaint);
     }
 
     /**
@@ -383,23 +406,28 @@ public abstract class AbsChartView extends View {
      *
      * @return
      */
-    protected abstract String getYHorizontalText(int index);
+    protected String getYHorizontalText(int index) {
+        float min = getMinValue();
+        float max = getMaxValue();
+        float range = max - min;
+        float single = range / (mSplitNum + 1);
+        float currentValue = min + single * index;
+        return getYbyValue(currentValue);
+    }
 
     /**
      * 基准线
      *
      * @return
      */
-    protected abstract int baseLine();
-
-    /**
-     * 水平横线的高度
-     *
-     * @return
-     */
-    protected float getSingleHeight() {
-        return mSingleHeight;
+    protected float getZeroLine() {
+        float range = getMaxValue() - getMinValue();
+        if (Float.compare(range, 0f) == 0) {
+            return 0;
+        }
+        return axisHeight() * Math.abs(getMinValue()) / range;
     }
+
 
     /**
      * 绘制X轴文字部分
@@ -413,21 +441,28 @@ public abstract class AbsChartView extends View {
         }
         canvas.translate(mOriginalX, mHeight - mOriginalY);
         float w = axisWidth() / count;
+        float axisLength = axisWidth();
         for (int i = 0; i < count; i++) {
             IChartContract.ChartSingleData data = mDataLists.get(i);
-            String showText = getXbyValue(data.xData);
+            String showText = getXbyValue(data.xData, i);
             mPaintController.mAxisXTextPaint.getTextBounds(showText, 0, showText.length(), mRect);
-            float start = (float) ((i + 0.5) * w - mRect.width() / 2);
+            float start = ((i + mOffset) * w - mRect.width() / 2);
+            if (start + mRect.width() > axisLength) {
+                start = axisLength - mRect.width();
+            }
+            if (start < 0) {
+                start = 0;
+            }
             canvas.drawText(showText, start, mXSpace + mRect.height(), mPaintController.mAxisXTextPaint);
 
         }
     }
 
     private void onDrawLineTips(Canvas canvas, int index) {
-        if (mShowTips && index >= 0 && index < getCount()) {
+        if (index >= 0 && index < getCount()) {
             canvas.save();
             canvas.translate(mOriginalX, mHeight - mOriginalY);
-            float center = (float) ((index + 0.5) * getSingleWidth());
+            float center = ((index + mOffset) * getSingleWidth());
             canvas.drawLine(center, 0, center, -axisHeight(), mPaintController.mLinePaint);
             IChartContract.ChartSingleData node = mDataLists.get(index);
             String xValue = getTips(index, node.xData, node.yData);
@@ -452,11 +487,19 @@ public abstract class AbsChartView extends View {
                     mTipsRadio,
                     mTipsRadio,
                     mPaintController.mTipsBackgroundPaint);
-
+            //山角形指示器
             Path path = new Path();
             path.moveTo(center, -axisHeight());
-            path.lineTo((float) (center - .5 * mRect.height()), bottom - 5);
-            path.lineTo((float) (center + .5 * mRect.height()), bottom - 5);
+            float pLeft = (float) (center - .5 * mRect.height());
+            if (pLeft < 0) {
+                pLeft = 0;
+            }
+            float pRight = (float) (center + .5 * mRect.height());
+            if (pRight > axisWidth()) {
+                pRight = axisHeight();
+            }
+            path.lineTo(pLeft, bottom - 5);
+            path.lineTo(pRight, bottom - 5);
             canvas.drawPath(path, mPaintController.mTipsBackgroundPaint);
             canvas.drawText(xValue,
                     (left + right - mRect.width()) / 2,
@@ -479,7 +522,6 @@ public abstract class AbsChartView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                mShowTips = true;
                 mIndex = getIndexOfPressed(event.getX());
                 mLastTapPointX = event.getX();
                 mLastTapPointY = event.getY();
@@ -491,29 +533,38 @@ public abstract class AbsChartView extends View {
                 float x = event.getX();
                 float y = event.getY();
                 if (Math.abs(x - mLastTapPointX) < Math.abs(y - mLastTapPointY)) {
-                    mShowTips = false;
                     if (getParent() != null) {
                         getParent().requestDisallowInterceptTouchEvent(false);
                     }
                 } else {
-                    mShowTips = true;
                     if (getParent() != null) {
                         getParent().requestDisallowInterceptTouchEvent(true);
                     }
                 }
                 mLastTapPointY = y;
                 mLastTapPointX = x;
-
                 invalidate();
                 dispatchChange(mIndex);
                 break;
             case MotionEvent.ACTION_UP:
-                mShowTips = false;
                 invalidate();
                 dispatchCancel();
                 break;
         }
         return true;
+    }
+
+    private void refresh() {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            invalidate();
+        } else {
+            postInvalidate();
+        }
+    }
+
+    public void setDefaultSelected(int index) {
+        this.mIndex = index;
+        refresh();
     }
 
     private void dispatchChange(int index) {
@@ -532,7 +583,7 @@ public abstract class AbsChartView extends View {
 
     private int getIndexOfPressed(float x) {
         if (x < mOriginalX || x > mOriginalX + axisWidth()) {
-            return -1;
+            return mIndex;
         }
         float offset = Math.abs(x - mOriginalX);
         return (int) Math.floor(offset / getSingleWidth());
@@ -571,6 +622,10 @@ public abstract class AbsChartView extends View {
          * 水平线
          */
         private Paint mHorizontalLinePaint;
+        /**
+         * 0基准水平线
+         */
+        private Paint mZeroLinePaint;
 
         PaintController() {
             mHorizontalLinePaint = buildPaint(mHorizontalLineColor);
@@ -586,9 +641,9 @@ public abstract class AbsChartView extends View {
             mTipsTextPaint = buildPaint(mTipsColor);
             mTipsTextPaint.setTextSize(mTipsSize);
             mTipsBackgroundPaint = buildPaint(mTipsBackground);
+            mZeroLinePaint = buildPaint(mZeroLineColor);
+            mZeroLinePaint.setStrokeWidth(mZeroLineWidth);
         }
-
-
     }
 
     protected Paint buildPaint(int color) {
