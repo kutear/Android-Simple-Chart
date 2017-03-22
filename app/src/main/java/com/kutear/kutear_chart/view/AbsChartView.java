@@ -213,13 +213,6 @@ public abstract class AbsChartView extends View {
         this.mListener = listener;
     }
 
-    protected Drawable getTapBitmap() {
-        if (mTapUpDrawable != null) {
-            return mTapUpDrawable;
-        }
-        return null;
-    }
-
     /**
      * 控制Y轴最大值与最小值
      *
@@ -575,6 +568,19 @@ public abstract class AbsChartView extends View {
 
     protected float getHeightOfIndex(int index) {
         return getHeightPercent(index) * axisHeight();
+    }
+
+    protected float getMaxCellHeight() {
+        float max = Integer.MIN_VALUE;
+        int index = -1;
+        for (int i = 0; i < getCount(); i++) {
+            IChartContract.ChartSingleData data = getItemData(i);
+            if (data.yData > max) {
+                max = data.yData;
+                index = i;
+            }
+        }
+        return getHeightOfIndex(index);
     }
 
     private void onDrawLineTips(Canvas canvas, int index) {

@@ -48,7 +48,7 @@
                 android:padding="16dp"
                 app:axis_space="3dp"
                 app:tips_size="11.6sp"
-                app:trend_fill_end_color="@color/colorPrimaryDark"
+                app:trend_fill_end_color="@color/color_test2"
                 app:trend_fill_start_color="@color/color_test"
                 app:trend_line_end_color="@color/colorPrimaryDark"
                 app:trend_line_size="2dp"
