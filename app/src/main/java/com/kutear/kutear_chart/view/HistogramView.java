@@ -26,6 +26,10 @@ public class HistogramView extends AbsChartView {
     private int mPEndHistogramColor = DEFAULT_HISTOGRAM_COLOR;
     private int mNStartHistogramColor = DEFAULT_HISTOGRAM_COLOR;
     private int mNEndHistogramColor = DEFAULT_HISTOGRAM_COLOR;
+    private int mSelectPStartHistogramColor = -1;
+    private int mSelectPEndHistogramColor = -1;
+    private int mSelectNStartHistogramColor = -1;
+    private int mSelectNEndHistogramColor = -1;
     private float mHistogramPercent = .5f;
     private PaintController mPaintController;
 
@@ -70,10 +74,38 @@ public class HistogramView extends AbsChartView {
                 case R.styleable.HistogramView_histogram_negative_top_color:
                     mNStartHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
                     break;
+                case R.styleable.HistogramView_histogram_select_negative_bottom_color:
+                    mSelectNEndHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_select_negative_top_color:
+                    mSelectNStartHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_select_positive_bottom_color:
+                    mSelectPEndHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
+                case R.styleable.HistogramView_histogram_select_positive_top_color:
+                    mSelectPStartHistogramColor = ta.getColor(attr, DEFAULT_HISTOGRAM_COLOR);
+                    break;
             }
         }
         ta.recycle();
         mPaintController = new PaintController();
+        initDefault();
+    }
+
+    private void initDefault() {
+        if (mSelectPStartHistogramColor == -1) {
+            mSelectPStartHistogramColor = mPStartHistogramColor;
+        }
+        if (mSelectPEndHistogramColor == -1) {
+            mSelectPEndHistogramColor = mPEndHistogramColor;
+        }
+        if (mSelectNStartHistogramColor == -1) {
+            mSelectNStartHistogramColor = mNStartHistogramColor;
+        }
+        if (mSelectNEndHistogramColor == -1) {
+            mSelectNEndHistogramColor = mNEndHistogramColor;
+        }
     }
 
     @Override
@@ -94,21 +126,44 @@ public class HistogramView extends AbsChartView {
             if (data.yData >= 0) {
                 top = drawHeight;
                 bottom = 0;
-                mPaintController.mPHistogramPaint.setShader(new LinearGradient(
-                        singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
-                        mPStartHistogramColor,mPEndHistogramColor, Shader.TileMode.CLAMP
-                ));
+                Paint paint = null;
+                if (getCurrentSelectIndex() == i) {
+                    mPaintController.mSelectPHistogramPaint.setShader(new LinearGradient(
+                            singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                            mSelectPStartHistogramColor, mSelectPEndHistogramColor, Shader.TileMode.CLAMP
+                    ));
+                    paint = mPaintController.mSelectPHistogramPaint;
+                } else {
+                    mPaintController.mNormalPHistogramPaint.setShader(new LinearGradient(
+                            singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                            mPStartHistogramColor, mPEndHistogramColor, Shader.TileMode.CLAMP
+                    ));
+                    paint = mPaintController.mNormalPHistogramPaint;
+                }
                 canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
-                        mPaintController.mPHistogramPaint);
+                        paint);
+
             } else {
                 top = 0;
                 bottom = drawHeight;
-                mPaintController.mNHistogramPaint.setShader(new LinearGradient(
-                        singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
-                        mNStartHistogramColor,mNEndHistogramColor, Shader.TileMode.CLAMP
-                ));
+                Paint paint = null;
+                if (getCurrentSelectIndex() == i) {
+                    mPaintController.mSelectNHistogramPaint.setShader(new LinearGradient(
+                            singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                            mSelectNStartHistogramColor, mSelectNEndHistogramColor, Shader.TileMode.CLAMP
+                    ));
+                    paint = mPaintController.mSelectNHistogramPaint;
+                } else {
+                    mPaintController.mNormalNHistogramPaint.setShader(new LinearGradient(
+                            singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
+                            mNStartHistogramColor, mNEndHistogramColor, Shader.TileMode.CLAMP
+                    ));
+                    paint = mPaintController.mNormalNHistogramPaint;
+                }
+
+
                 canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
-                        mPaintController.mNHistogramPaint);
+                        paint);
             }
         }
         canvas.restore();
@@ -121,22 +176,25 @@ public class HistogramView extends AbsChartView {
         /**
          * 柱状图画笔(+)
          */
-        private Paint mPHistogramPaint;
+        private Paint mNormalPHistogramPaint;
         /**
          * 柱状图画笔(-)
          */
-        private Paint mNHistogramPaint;
+        private Paint mNormalNHistogramPaint;
+        /**
+         * 柱状图画笔(+)
+         */
+        private Paint mSelectPHistogramPaint;
+        /**
+         * 柱状图画笔(-)
+         */
+        private Paint mSelectNHistogramPaint;
 
         PaintController() {
-            mPHistogramPaint = buildPaint(mPStartHistogramColor);
-            mNHistogramPaint = buildPaint(mNStartHistogramColor);
-        }
-
-        private Paint buildPaint(int color) {
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
-            paint.setColor(color);
-            return paint;
+            mNormalPHistogramPaint = buildPaint(mPStartHistogramColor);
+            mNormalNHistogramPaint = buildPaint(mNStartHistogramColor);
+            mSelectPHistogramPaint = buildPaint(mPStartHistogramColor);
+            mSelectNHistogramPaint = buildPaint(mNStartHistogramColor);
         }
     }
 }

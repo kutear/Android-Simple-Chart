@@ -74,7 +74,8 @@ public abstract class AbsChartView extends View {
     private float mLastTapPointX;
     private float mLastTapPointY;
     private float mOffset = .5f; //触摸线偏移一个单元格的比例
-    private Drawable mTapDrawable;
+    private Drawable mTapUpDrawable;
+    private Drawable mTapDonwDrawable;
 
 
     public AbsChartView(Context context) {
@@ -163,8 +164,11 @@ public abstract class AbsChartView extends View {
                 case R.styleable.AbsChartView_zero_line_size:
                     mZeroLineWidth = ta.getDimension(attr, 0.7f);
                     break;
-                case R.styleable.AbsChartView_tap_bg:
-                    mTapDrawable = ta.getDrawable(attr);
+                case R.styleable.AbsChartView_tap_up_bg:
+                    mTapUpDrawable = ta.getDrawable(attr);
+                    break;
+                case R.styleable.AbsChartView_tap_down_bg:
+                    mTapDonwDrawable = ta.getDrawable(attr);
                     break;
             }
         }
@@ -210,8 +214,8 @@ public abstract class AbsChartView extends View {
     }
 
     protected Drawable getTapBitmap() {
-        if (mTapDrawable != null) {
-            return mTapDrawable;
+        if (mTapUpDrawable != null) {
+            return mTapUpDrawable;
         }
         return null;
     }
@@ -291,6 +295,10 @@ public abstract class AbsChartView extends View {
             mMaxValue = max;
             mMinValue = min;
         }
+        if (Float.compare(max, min) == 0 && Float.compare(max, 0) == 0) {
+            mMaxValue = 1;
+            mMinValue = 0;
+        }
     }
 
     /**
@@ -322,25 +330,48 @@ public abstract class AbsChartView extends View {
     }
 
     protected void onDrawTapDrawable(Canvas canvas) {
+        if (mTapUpDrawable == null && mTapDonwDrawable == null
+                && mIndex < 0 && mIndex >= getCount()) {
+            return;
+        }
         canvas.save();
         canvas.translate(mOriginalX, mHeight - mOriginalY);
-
         float where = whereIs(mIndex);
         float height = getHeightOfIndex(mIndex);
-        float w = mTapDrawable.getIntrinsicWidth();
-        mTapDrawable.setBounds(
-                (int) (where - w / 2),
-                (int) (-height - w / 2),
-                (int) (where + w / 2),
-                (int) (-height + w / 2)
-        );
 
-        mTapDrawable.draw(canvas);
+        Drawable drawable = getTapDrawable(mIndex);
+        if (drawable != null) {
+            float w = drawable.getIntrinsicWidth();
+            drawable.setBounds(
+                    (int) (where - w / 2),
+                    (int) (-height - w / 2),
+                    (int) (where + w / 2),
+                    (int) (-height + w / 2)
+            );
+            drawable.draw(canvas);
+        }
         canvas.restore();
     }
 
+    private Drawable getTapDrawable(int index) {
+        IChartContract.ChartSingleData data = getItemData(index);
+        if (mTapDonwDrawable == null) {
+            mTapDonwDrawable = mTapUpDrawable;
+        }
+        if (mTapUpDrawable == null) {
+            mTapUpDrawable = mTapDonwDrawable;
+        }
+        if (data != null) {
+            if (data.yData < 0) {
+                return mTapDonwDrawable;
+            }
+            return mTapUpDrawable;
+        }
+        return mTapUpDrawable;
+    }
+
     public void setTapDrawable(Drawable drawable) {
-        this.mTapDrawable = drawable;
+        this.mTapUpDrawable = drawable;
         refresh();
     }
 
@@ -366,7 +397,7 @@ public abstract class AbsChartView extends View {
         //绘制X轴
         canvas.drawLine(0, 0, axisWidth(), 0, mPaintController.mAxisPaint);
         float singleLineHeight = Math.abs(axisHeight() / (mSplitNum + 1));
-        onDrawHorizontalLine(canvas, singleLineHeight, yTextHeight);
+        onDrawHorizontalLine(canvas, singleLineHeight, yTextHeight, yTextWidth);
         canvas.restore();
     }
 
@@ -398,14 +429,14 @@ public abstract class AbsChartView extends View {
      *
      * @param canvas
      */
-    protected void onDrawHorizontalLine(Canvas canvas, float singleHeight, float textHeight) {
+    protected void onDrawHorizontalLine(Canvas canvas, float singleHeight, float textHeight, float textWidth) {
         for (int i = 1; i <= mSplitNum; i++) {
             canvas.drawLine(0,
                     -i * singleHeight,
                     axisWidth(),
                     -i * singleHeight,
                     mPaintController.mHorizontalLinePaint);
-            onDrawYText(canvas, i, -mOriginalX, -i * singleHeight + textHeight / 2);
+            onDrawYText(canvas, i, -mOriginalX, -i * singleHeight + textHeight / 2, textWidth);
         }
         if (getMaxValue() > 0 && getMinValue() < 0) {
             float zeroLine = -getZeroLine();
@@ -436,8 +467,12 @@ public abstract class AbsChartView extends View {
      *
      * @param canvas
      */
-    protected void onDrawYText(Canvas canvas, int index, float startX, float startY) {
-        canvas.drawText(getYHorizontalText(index), startX, startY, mPaintController.mAxisYTextPaint);
+    protected void onDrawYText(Canvas canvas, int index, float startX, float startY, float textW) {
+        String text = getYHorizontalText(index);
+        mPaintController.mAxisYTextPaint.getTextBounds(text, 0, text.length(), mRect);
+        float w = mRect.width();
+        float offset = textW - w;
+        canvas.drawText(text, startX + offset, startY, mPaintController.mAxisYTextPaint);
     }
 
     protected int getCount() {

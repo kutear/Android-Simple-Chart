@@ -97,13 +97,12 @@ public class TrendView extends AbsChartView {
         if (count <= 0) {
             return;
         }
-        float singleWidth = getCellWidth();
         mFillPath.reset();
         mLinePath.reset();
         mFillPath.moveTo(0, 0);
         for (int i = 0; i < count; i++) {
             float drawHeight = getHeightOfIndex(i);
-            float center = singleWidth * i;
+            float center = whereIs(i) ;
             if (i == 0) {
                 mLinePath.moveTo(center, -drawHeight);
             } else {

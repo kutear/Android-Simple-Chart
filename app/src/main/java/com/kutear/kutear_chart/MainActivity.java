@@ -25,9 +25,9 @@ public class MainActivity extends AppCompatActivity {
 
         datas = new ArrayList<>();
         Random random = new Random();
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 12; i++) {
             int randomInt = random.nextInt(100);
-            datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt+500));
+            datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt));
         }
         datas.add(new IChartContract.ChartSingleData(String.valueOf(13), -20));
         HistogramView view = (HistogramView) findViewById(R.id.chart);

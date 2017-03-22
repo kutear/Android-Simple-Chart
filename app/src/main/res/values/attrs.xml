@@ -20,7 +20,8 @@
         <attr name="tips_radio" format="dimension" />
         <attr name="zero_line_size" format="dimension" />
         <attr name="zero_line_color" format="color" />
-        <attr name="tap_bg" format="reference" />
+        <attr name="tap_up_bg" format="reference" />
+        <attr name="tap_down_bg" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="HistogramView">
@@ -28,6 +29,10 @@
         <attr name="histogram_positive_bottom_color" format="color" />
         <attr name="histogram_negative_top_color" format="color" />
         <attr name="histogram_negative_bottom_color" format="color" />
+        <attr name="histogram_select_positive_top_color" format="color"/>
+        <attr name="histogram_select_positive_bottom_color" format="color"/>
+        <attr name="histogram_select_negative_top_color" format="color"/>
+        <attr name="histogram_select_negative_bottom_color" format="color"/>
         <attr name="histogram_width_percent" format="float" />
     </declare-styleable>
 
