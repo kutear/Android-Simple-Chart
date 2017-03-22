@@ -27,13 +27,6 @@ public interface IChartContract {
          * @return
          */
         String formatY(float yAxis);
-
-        /**
-         * Y轴文字最长时的长度
-         *
-         * @return
-         */
-        String getYMaxText();
     }
 
     /**

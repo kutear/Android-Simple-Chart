@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         for (int i = 0; i < 30; i++) {
             int randomInt = random.nextInt(100);
-            datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt));
+            datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt+500));
         }
         datas.add(new IChartContract.ChartSingleData(String.valueOf(13), -20));
         HistogramView view = (HistogramView) findViewById(R.id.chart);
@@ -44,20 +44,12 @@ public class MainActivity extends AppCompatActivity {
         view.setFormatAxis(new IChartContract.IFormatAxis() {
             @Override
             public String formatX(String xAxis, int i) {
-                if (i == 0 || i == datas.size() - 1) {
-                    return "X-" + xAxis;
-                }
-                return "";
+                return xAxis;
             }
 
             @Override
             public String formatY(float yAxis) {
                 return String.valueOf(yAxis);
-            }
-
-            @Override
-            public String getYMaxText() {
-                return "99.9999";
             }
         });
 

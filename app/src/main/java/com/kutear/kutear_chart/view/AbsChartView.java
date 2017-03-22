@@ -291,12 +291,6 @@ public abstract class AbsChartView extends View {
             mMaxValue = max;
             mMinValue = min;
         }
-        if (min > 0) {
-            mMinValue = 0;
-        }
-        if (mMaxValue < 0) {
-            mMaxValue = 0;
-        }
     }
 
     /**
@@ -357,10 +351,8 @@ public abstract class AbsChartView extends View {
      */
     private void onDrawAxis(Canvas canvas) {
         canvas.save();
-        String maxShow = getYMaxText();
-        mPaintController.mAxisYTextPaint.getTextBounds(maxShow, 0, String.valueOf(maxShow).length(), mRect);
-        float yTextHeight = mRect.height();
-        float yTextWidth = mRect.width();
+        float yTextHeight = getYMaxTextHeight();
+        float yTextWidth = getYMaxTextLength();
         mOriginalX = yTextWidth + mYSpace + mSpace;
         mPaintController.mAxisXTextPaint.getTextBounds(String.valueOf("0"), 0, String.valueOf("0").length(), mRect);
         float axisXTextHeight = mRect.height();
@@ -378,11 +370,21 @@ public abstract class AbsChartView extends View {
         canvas.restore();
     }
 
-    private String getYMaxText() {
-        if (mFormatAxis != null) {
-            return mFormatAxis.getYMaxText();
-        }
-        return "00.00";
+    private float getYMaxTextLength() {
+        String max = getYbyValue(getMaxValue());
+        String min = getYbyValue(getMinValue());
+        mPaintController.mAxisYTextPaint.getTextBounds(max, 0, max.length(), mRect);
+        float maxW = mRect.width();
+        mPaintController.mAxisYTextPaint.getTextBounds(min, 0, min.length(), mRect);
+        float minW = mRect.width();
+        float resW = maxW > minW ? maxW : minW;
+        return resW;
+    }
+
+    private float getYMaxTextHeight() {
+        String min = getYbyValue(getMinValue());
+        mPaintController.mAxisYTextPaint.getTextBounds(min, 0, min.length(), mRect);
+        return mRect.height();
     }
 
     protected void setOffset(float offset) {
@@ -472,6 +474,9 @@ public abstract class AbsChartView extends View {
     protected float getZeroLine() {
         float range = getMaxValue() - getMinValue();
         if (Float.compare(range, 0f) == 0) {
+            return 0;
+        }
+        if (getMinValue() > 0) {
             return 0;
         }
         return axisHeight() * Math.abs(getMinValue()) / range;
