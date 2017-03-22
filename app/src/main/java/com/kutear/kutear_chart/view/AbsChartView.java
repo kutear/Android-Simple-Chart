@@ -3,15 +3,12 @@ package com.kutear.kutear_chart.view;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Looper;
@@ -78,7 +75,6 @@ public abstract class AbsChartView extends View {
     private float mLastTapPointY;
     private float mOffset = .5f; //触摸线偏移一个单元格的比例
     private Drawable mTapDrawable;
-    private Context mCtx;
 
 
     public AbsChartView(Context context) {
@@ -101,7 +97,6 @@ public abstract class AbsChartView extends View {
     }
 
     private void init(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        this.mCtx = context;
         initDefaultValue(context);
         TypedArray ta = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AbsChartView, defStyleAttr, 0);
         int n = ta.getIndexCount();
@@ -289,8 +284,19 @@ public abstract class AbsChartView extends View {
                 min = data.yData;
             }
         }
-        mMaxValue = max;
-        mMinValue = min;
+        if (Float.compare(max, min) == 0) {
+            mMaxValue = Math.abs(max);
+            mMinValue = -Math.abs(max);
+        } else {
+            mMaxValue = max;
+            mMinValue = min;
+        }
+        if (min > 0) {
+            mMinValue = 0;
+        }
+        if (mMaxValue < 0) {
+            mMaxValue = 0;
+        }
     }
 
     /**
@@ -318,6 +324,30 @@ public abstract class AbsChartView extends View {
         onDrawLineTips(canvas, mIndex);
         onDrawGraph(canvas);
         onDrawXText(canvas);
+        onDrawTapDrawable(canvas);
+    }
+
+    protected void onDrawTapDrawable(Canvas canvas) {
+        canvas.save();
+        canvas.translate(mOriginalX, mHeight - mOriginalY);
+
+        float where = whereIs(mIndex);
+        float height = getHeightOfIndex(mIndex);
+        float w = mTapDrawable.getIntrinsicWidth();
+        mTapDrawable.setBounds(
+                (int) (where - w / 2),
+                (int) (-height - w / 2),
+                (int) (where + w / 2),
+                (int) (-height + w / 2)
+        );
+
+        mTapDrawable.draw(canvas);
+        canvas.restore();
+    }
+
+    public void setTapDrawable(Drawable drawable) {
+        this.mTapDrawable = drawable;
+        refresh();
     }
 
     /**
@@ -327,8 +357,8 @@ public abstract class AbsChartView extends View {
      */
     private void onDrawAxis(Canvas canvas) {
         canvas.save();
-        String max = getYbyValue(getMaxValue());
-        mPaintController.mAxisYTextPaint.getTextBounds(getYMaxText(), 0, String.valueOf(max).length(), mRect);
+        String maxShow = getYMaxText();
+        mPaintController.mAxisYTextPaint.getTextBounds(maxShow, 0, String.valueOf(maxShow).length(), mRect);
         float yTextHeight = mRect.height();
         float yTextWidth = mRect.width();
         mOriginalX = yTextWidth + mYSpace + mSpace;
@@ -375,7 +405,7 @@ public abstract class AbsChartView extends View {
                     mPaintController.mHorizontalLinePaint);
             onDrawYText(canvas, i, -mOriginalX, -i * singleHeight + textHeight / 2);
         }
-        if (mMaxValue > 0 && mMinValue < 0) {
+        if (getMaxValue() > 0 && getMinValue() < 0) {
             float zeroLine = -getZeroLine();
             canvas.drawLine(0, zeroLine, axisWidth(), zeroLine, mPaintController.mZeroLinePaint);
         }
@@ -458,6 +488,7 @@ public abstract class AbsChartView extends View {
         if (count <= 0) {
             return;
         }
+        canvas.save();
         canvas.translate(mOriginalX, mHeight - mOriginalY);
         float w = axisWidth() / count;
         float axisLength = axisWidth();
@@ -473,8 +504,8 @@ public abstract class AbsChartView extends View {
                 start = 0;
             }
             canvas.drawText(showText, start, mXSpace + mRect.height(), mPaintController.mAxisXTextPaint);
-
         }
+        canvas.restore();
     }
 
     /**
@@ -576,7 +607,6 @@ public abstract class AbsChartView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mIndex = getIndexOfPressed(event.getX());

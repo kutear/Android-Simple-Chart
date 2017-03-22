@@ -27,7 +27,7 @@
                 app:histogram_negative_top_color="@color/colorPrimary"
                 app:histogram_positive_bottom_color="@color/colorPrimary"
                 app:histogram_positive_top_color="@color/colorAccent"
-                app:tap_bg="@mipmap/ic_launcher"
+                app:tap_bg="@drawable/demo"
                 app:tips_size="11.6sp"
                 app:y_size="10sp"
                 tools:layout_editor_absoluteX="8dp"
@@ -43,6 +43,7 @@
                 android:padding="16dp"
                 app:axis_space="3dp"
                 app:tips_size="11.6sp"
+                app:tap_bg="@mipmap/ic_launcher"
                 app:trend_fill_end_color="@color/colorPrimaryDark"
                 app:trend_fill_start_color="@color/color_test"
                 app:trend_line_end_color="@color/colorPrimaryDark"
@@ -62,7 +63,7 @@
             <com.kutear.kutear_chart.TestView
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                app:test="@mipmap/ic_launcher" />
+                app:test="@drawable/test" />
 
         </LinearLayout>
     </ScrollView>

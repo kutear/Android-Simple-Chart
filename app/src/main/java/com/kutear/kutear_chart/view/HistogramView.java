@@ -93,7 +93,7 @@ public class HistogramView extends AbsChartView {
             float drawHeight = -(getHeightOfIndex(i) - baseLine);
             float top = 0;
             float bottom = 0;
-            if (data.yData > 0) {
+            if (data.yData >= 0) {
                 top = drawHeight;
                 bottom = 0;
                 mPaintController.mPHistogramPaint.setShader(new LinearGradient(
@@ -111,14 +111,6 @@ public class HistogramView extends AbsChartView {
                 ));
                 canvas.drawRect(singleWidth * i + space, top, singleWidth * (i + 1) - space, bottom,
                         mPaintController.mNHistogramPaint);
-            }
-
-
-
-
-
-            if (getCurrentSelectIndex() == i) {
-                //绘制指示部分
             }
         }
         canvas.restore();

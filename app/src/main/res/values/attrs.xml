@@ -30,6 +30,7 @@
         <attr name="histogram_negative_bottom_color" format="color" />
         <attr name="histogram_width_percent" format="float" />
     </declare-styleable>
+
     <declare-styleable name="TrendView">
         <attr name="trend_line_start_color" format="color" />
         <attr name="trend_line_end_color" format="color" />

@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
             int randomInt = random.nextInt(100);
             datas.add(new IChartContract.ChartSingleData(String.valueOf(i), randomInt));
         }
-        datas.add(new IChartContract.ChartSingleData("13", -50f));
+        datas.add(new IChartContract.ChartSingleData(String.valueOf(13), -20));
         HistogramView view = (HistogramView) findViewById(R.id.chart);
         view.setData(datas);
         TrendView trendView = (TrendView) findViewById(R.id.trend);
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public String getYMaxText() {
-                return "99.99";
+                return "99.9999";
             }
         });
 
@@ -76,12 +76,12 @@ public class MainActivity extends AppCompatActivity {
         view.setMaxMin(new IChartContract.IMaxMin() {
             @Override
             public float getMax(float max, float min) {
-                return 100;
+                return max + (max - min) / 6;
             }
 
             @Override
             public float getMin(float max, float min) {
-                return -50;
+                return min - (max - min) / 6;
             }
         });
 

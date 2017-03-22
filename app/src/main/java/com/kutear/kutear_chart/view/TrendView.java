@@ -5,14 +5,11 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Shader;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import com.kutear.kutear_chart.R;
 

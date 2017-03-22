@@ -32,7 +32,6 @@ public class TestView extends View {
             }
         }
         ta.recycle();
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     public TestView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -46,8 +45,8 @@ public class TestView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.translate(400,0);
-        mDrawable.setBounds(0,100,100,0);
+        canvas.translate(getWidth()/2,0);
+        mDrawable.setBounds(-getWidth() / 2, 0, getWidth() / 2, getHeight());
         mDrawable.draw(canvas);
     }
 }
