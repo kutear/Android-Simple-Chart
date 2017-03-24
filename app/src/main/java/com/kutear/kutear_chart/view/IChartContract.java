@@ -18,7 +18,7 @@ public interface IChartContract {
          * @param xAxis
          * @return
          */
-        String formatX(String xAxis,int index);
+        String formatX(String xAxis, int index);
 
         /**
          * 格式化X的展示
@@ -38,8 +38,18 @@ public interface IChartContract {
         float getMin(float max, float min);
     }
 
-
+    /**
+     * 上方的浮动指示器
+     */
     interface ITipShow {
+        /**
+         * 格式化上方指示器展示的内容
+         *
+         * @param position
+         * @param x
+         * @param y
+         * @return
+         */
         String getTips(int position, String x, float y);
     }
 
