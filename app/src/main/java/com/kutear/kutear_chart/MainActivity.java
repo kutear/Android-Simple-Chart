@@ -10,6 +10,7 @@ import com.kutear.kutear_chart.view.HistogramView;
 import com.kutear.kutear_chart.view.IChartContract;
 import com.kutear.kutear_chart.view.TrendView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -49,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public String formatY(float yAxis) {
-                return String.valueOf(yAxis);
+                DecimalFormat   fnum  =   new DecimalFormat("##0.00");
+                return fnum.format(yAxis);
             }
         });
 
