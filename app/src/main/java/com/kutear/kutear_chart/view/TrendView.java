@@ -89,7 +89,8 @@ public class TrendView extends AbsChartView {
     @Override
     protected void onDrawGraph(Canvas canvas) {
         mLinePaint.setShader(new LinearGradient(0, 0, axisWidth(), 0, mStartColor, mEndColor, Shader.TileMode.MIRROR));
-        LinearGradient fillColor = new LinearGradient(0, 0, 0, -getMaxCellHeight(), mFillStartColor, mFillEndColor, Shader.TileMode.CLAMP);
+        LinearGradient fillColor = new LinearGradient(0, 0, 0, -getMaxCellHeight(), mFillStartColor,
+                mFillEndColor, Shader.TileMode.MIRROR);
         mFillPaint.setShader(fillColor);
         canvas.save();
         canvas.translate(mOriginalX, mHeight - mOriginalY);
