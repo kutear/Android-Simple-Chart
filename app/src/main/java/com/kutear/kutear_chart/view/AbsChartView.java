@@ -298,17 +298,17 @@ public abstract class AbsChartView extends View {
                 min = data.yData;
             }
         }
-        if (Float.compare(max, min) == 0) {
-            mMaxValue = Math.abs(max);
-            mMinValue = -Math.abs(max);
-        } else {
+//        if (Float.compare(max, min) == 0) {
+//            mMaxValue = Math.abs(max);
+//            mMinValue = -Math.abs(max);
+//        } else {
             mMaxValue = max;
             mMinValue = min;
-        }
-        if (Float.compare(max, min) == 0 && Float.compare(max, 0) == 0) {
-            mMaxValue = 1;
-            mMinValue = 0;
-        }
+//        }
+//        if (Float.compare(max, min) == 0 && Float.compare(max, 0) == 0) {
+//            mMaxValue = 1;
+//            mMinValue = 0;
+//        }
     }
 
     /**
@@ -543,7 +543,7 @@ public abstract class AbsChartView extends View {
     protected float getZeroLine() {
         float range = getMaxValue() - getMinValue();
         if (Float.compare(range, 0f) == 0) {
-            return 0;
+            return axisHeight() * .5f;
         }
         if (getMinValue() > 0) {
             return 0;
@@ -598,7 +598,7 @@ public abstract class AbsChartView extends View {
         float max = getMaxValue();
         float range = Math.abs(max - min);
         if (Float.compare(range, 0) == 0) {
-            return 1;
+            return 0.5f;
         }
         if (index >= 0 && index < mDataLists.size()) {
             float currentValue = mDataLists.get(index).yData;
@@ -616,6 +616,7 @@ public abstract class AbsChartView extends View {
             canvas.save();
             canvas.translate(mOriginalX, mHeight - mOriginalY);
             float center = ((index + mOffset) * getCellWidth());
+
             canvas.drawLine(center, 0, center, -axisHeight(), mPaintController.mLinePaint);
             IChartContract.ChartSingleData node = mDataLists.get(index);
             String xValue = getTips(index, node.xData, node.yData);
